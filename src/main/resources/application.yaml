@@ -11,7 +11,7 @@ mybatis:
   type-aliases-package: com.entity
 
 server:
-  port: 8848
+  port: 8080
   tomcat:
     uri-encoding: UTF-8
     max-http-form-post-size: 102400

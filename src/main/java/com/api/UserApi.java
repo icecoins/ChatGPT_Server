@@ -78,7 +78,7 @@ public class UserApi {
     /**
      * login with encrypted username and password
      * this mapping will decrypt them and check the database
-     * if everything is allright, it will return a JSONObject
+     * if everything is alright, it will return a JSONObject
      * with token and userInfo inside
      *
      * notice: it is mainly used to verify username and password,
@@ -86,7 +86,7 @@ public class UserApi {
      * you should use other mappings
      * */
     @PostMapping("/getUser/{name}/{pwd}")
-    public JSONObject buildUser(@PathVariable String name, @PathVariable String pwd) {
+    public JSONObject getUser(@PathVariable String name, @PathVariable String pwd) {
         User user = new User();
         user.setUsername(decrypt(name));
         user.setPassword(decrypt(pwd));
@@ -99,14 +99,9 @@ public class UserApi {
      * it will receive unencrypted username and password
      * and return the token
     */
-    @RequestMapping("/getUser/debug/{name}/{pwd}")
-    public String debug(@PathVariable String name, @PathVariable String pwd) {
-        User user = new User();
-        user.setUsername(name);
-        user.setPassword(pwd);
-        user.setId("1");
-        user.setInfo("233");
-        return tokenService.getToken(user);
+    @RequestMapping("/getUser/debug/{name}")
+    public JSONObject debug(@PathVariable String name) {
+        return login(userService.findByUsername(name));
     }
 
     /**
@@ -139,9 +134,10 @@ public class UserApi {
     @UserLoginToken
     @RequestMapping("/getProperty/{username}")
     public JSONObject getProperty(@PathVariable String username) {
-        if(!(Objects.equals(username, tokenApi.getCurrentUsername()))){
+        if(misMatchUsername(username)){
             return null;
         }
+
         JSONObject jsonObject = new JSONObject();
         Property property = userMapper.getPropertyByUsername(username);
         jsonObject.put("username", property.getUsername());
@@ -160,7 +156,7 @@ public class UserApi {
     @UserLoginToken
     @RequestMapping("/getInfo/{username}")
     public JSONObject getInfo(@PathVariable String username) {
-        if(!(Objects.equals(username, tokenApi.getCurrentUsername()))){
+        if(misMatchUsername(username)){
             return null;
         }
         JSONObject jsonObject = new JSONObject();
@@ -171,6 +167,8 @@ public class UserApi {
         return jsonObject;
     }
 
+
+
     /**
      * this mapping will tell u whether your token is available
      * */
@@ -179,5 +177,22 @@ public class UserApi {
     public String getMessage() {
         return "You have passed the verification";
     }
+
+    public static boolean misMatchUsername(String username){
+        return !username.equals(tokenApi.getCurrentUsername());
+    }
+
+    @UserLoginToken
+    @RequestMapping("/checkIn/{username}")
+    public boolean DailyCheckIn(@PathVariable String username) {
+        if(misMatchUsername(username)){
+            return false;
+        }
+        Property property = userMapper.getPropertyByUsername(username);
+        int checked = userMapper.setPropertyByUsername(username, property.getCoin()+100,
+                                        property.getLevel()+1, property.getExp()+5);
+        return checked != 0;
+    }
+
 
 }

@@ -9,4 +9,4 @@
 /httpRequests/
 # Resources local storage ignored files
 /Resources/
-/Resources.application.yaml
+/Resources/application.yaml

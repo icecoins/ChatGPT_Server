@@ -12,7 +12,7 @@ import java.util.*;
 public class TokenService {
     public String getToken(User user) {
         // the token expires in 0.5 minutes, u should change it
-        float expMinutes = 0.5f;
+        float expMinutes = 5;
         //now
         Date iatDate = new Date(),
                 //time to expire

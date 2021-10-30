@@ -14,3 +14,5 @@ import java.lang.annotation.Target;
 public @interface UserLoginToken {
     boolean required() default true;
 }
+
+

@@ -11,5 +11,7 @@ public interface UserMapper {
     User findByUsername(@Param("username") String username);
     User findUserById(@Param("Id") String Id);
     Property getPropertyByUsername(@Param("username") String username);
-    Property getPropertyById(@Param("Id") String Id);
+    //Property getPropertyById(@Param("Id") String Id);
+    int setPropertyByUsername(@Param("username") String username, @Param("new_coin") int new_coin,
+                                  @Param("new_level") int new_level, @Param("new_exp") int new_exp );
 }
