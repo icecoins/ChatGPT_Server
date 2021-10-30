@@ -8,5 +8,5 @@
 # Editor-based HTTP Client requests
 /httpRequests/
 # Resources local storage ignored files
-/Resources/
-/Resources/application.yaml
+/resources/
+/resources/application.yaml
