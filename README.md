@@ -17,3 +17,28 @@
 注意：bug非常多，很有可能一运行就报错，请不要过于惊讶
 
 附：项目文件中resources目录下包含了sql文件，可以少手动录入六七条数据
+
+
+# 注：all mappings information：
+# 位于UserApi下
+host/time ：  获取当前时间，yyyy-MM-dd HH:mm:ss
+
+host/getUser/{name} ：  验证token，通过则返回message：200
+
+host/getUser/{name}/{pwd} ：  验证用户名密码，通过则返回token和改user的info
+
+host/getProperty/{username} ：  验证token与username后，返回对应的property
+
+host/getInfo/{username} ：  验证token与username后，返回对应的一些information
+
+host/checkToken ： 验证token是否可用
+
+host/checkIn/{username} ： 验证token与username后，在数据库中对该user增加一些property项，返回boolean
+
+# 位于ErrorPage下
+host/error  ： 错误页面
+
+# 位于InfoController下
+host/username ： 从token中获取username
+
+host/token  ： 获取当前token
