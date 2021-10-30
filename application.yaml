@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/example
+    username: example1
+    password: example2
+
+mybatis:
+  config-location: classpath:mybatis.xml
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.entity
+
+server:
+  port: 8080
+  tomcat:
+    uri-encoding: UTF-8
+    max-http-form-post-size: 102400
+  max-http-header-size: 102400
