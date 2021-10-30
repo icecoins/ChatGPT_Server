@@ -7,4 +7,5 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+/src/main/resources/
 /src/main/resources/application.yaml
