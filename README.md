@@ -25,7 +25,7 @@ host/time ：  获取当前时间，yyyy-MM-dd HH:mm:ss
 
 host/getUser/{name} ：  验证token，通过则返回message：200
 
-host/getUser/{name}/{pwd} ：  验证用户名密码，通过则返回token和改user的info
+host/getUser/{name}/{pwd} ：  验证用户名密码，通过则返回token和user的info
 
 host/getProperty/{username} ：  验证token与username后，返回对应的property
 
