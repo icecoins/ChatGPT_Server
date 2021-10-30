@@ -7,6 +7,4 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
-# Resources local storage ignored files
-/resources/
-/resources/application.yaml
+/src/main/resources/application.yaml
