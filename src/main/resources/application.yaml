@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/example
-    username: example
-    password: example
+    url: jdbc:mysql://localhost:3306/publicuser
+    username: PublicUser
+    password: 11aa2288
 
 mybatis:
   config-location: classpath:mybatis.xml
@@ -11,7 +11,7 @@ mybatis:
   type-aliases-package: com.entity
 
 server:
-  port: 8080
+  port: 8848
   tomcat:
     uri-encoding: UTF-8
     max-http-form-post-size: 102400
