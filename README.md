@@ -23,17 +23,17 @@
 # 位于UserApi下
 host/time ：  获取当前时间，yyyy-MM-dd HH:mm:ss
 
-host/getUser/{name} ：  验证token，通过则返回message：200
+host/api/getUser/{name} ：  验证token，通过则返回message：200
 
-host/getUser/{name}/{pwd} ：  验证用户名密码，通过则返回token和user的info
+host/api/getUser/{name}/{pwd} ：  验证用户名密码，通过则返回token和user的info
 
-host/getProperty/{username} ：  验证token与username后，返回对应的property
+host/api/getProperty/{username} ：  验证token与username后，返回对应的property
 
-host/getInfo/{username} ：  验证token与username后，返回对应的一些information
+host/api/getInfo/{username} ：  验证token与username后，返回对应的一些information
 
-host/checkToken ： 验证token是否可用
+host/api/checkToken ： 验证token是否可用
 
-host/checkIn/{username} ： 验证token与username后，在数据库中对该user增加一些property项，返回boolean
+host/api/checkIn/{username} ： 验证token与username后，在数据库中对该user增加一些property项，返回boolean
 
 # 位于ErrorPage下
 host/error  ： 错误页面
