@@ -12,8 +12,6 @@
 
 配套的android app：https://github.com/woyaogtmdttkp/TokenVerifier
 
-和之前一样，是“有感而发”的代码
-
 注意：bug非常多，很有可能一运行就报错，请不要过于惊讶
 
 附：项目文件中resources目录下包含了sql文件，可以少手动录入六七条数据
