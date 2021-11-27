@@ -43,7 +43,7 @@ host/api/getInfo/{username} ：  验证token与username后，返回对应的一�
 
 host/api/checkToken ： 验证token是否可用
 
-host/api/checkIn/{username} ： 验证token与username后，在数据库中对该user增加一些property项，返回boolean
+host/api/checkIn/{username} ： 验证token与username后，在数据库中对该user增加一些property项，返回更新成功的boolean值
 
 # 位于ErrorPage下
 host/error  ： 错误页面
