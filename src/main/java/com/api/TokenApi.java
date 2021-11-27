@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 
 
-public class tokenApi {
+public class TokenApi {
     /**
      * return current token
      * */

@@ -1,6 +1,6 @@
 package com.service;
 
-import com.api.tokenApi;
+import com.api.TokenApi;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.entity.User;
@@ -30,6 +30,6 @@ public class TokenService {
                 .withClaim("userId", user.getId()) //put some messages inside
                 .withClaim("username", user.getUsername())
                 //.withClaim("password", user.getPassword())  //u can skip this step
-                .sign(Algorithm.HMAC256(tokenApi.getTokenSecret())); //set the key of token;
+                .sign(Algorithm.HMAC256(TokenApi.getTokenSecret())); //set the key of token;
     }
 }

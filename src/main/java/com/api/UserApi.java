@@ -32,13 +32,15 @@ public class UserApi {
      * return the time, it seems useless
      * */
     @RequestMapping("/time")
-    public static String getDate(){
+    public static JSONObject getDate(){
         Calendar calendar = new GregorianCalendar();
         calendar.setTime(new Date());
         Date d = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
-        return sdf.format(d);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("time", sdf.format(d));
+        return jsonObject;
     }
 
      /**
@@ -66,7 +68,7 @@ public class UserApi {
     @UserLoginToken
     @PostMapping("/getUser/{name}")
     public JSONObject tokenUser(@PathVariable String name) {
-        if(Objects.equals(name, tokenApi.getCurrentUsername())){
+        if(Objects.equals(name, TokenApi.getCurrentUsername())){
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("message", "200");
             return jsonObject;
@@ -179,7 +181,7 @@ public class UserApi {
     }
 
     public static boolean misMatchUsername(String username){
-        return !username.equals(tokenApi.getCurrentUsername());
+        return !username.equals(TokenApi.getCurrentUsername());
     }
 
     @UserLoginToken

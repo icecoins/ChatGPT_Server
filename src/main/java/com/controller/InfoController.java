@@ -1,7 +1,7 @@
 package com.controller;
 
 
-import com.api.tokenApi;
+import com.api.TokenApi;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -9,17 +9,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class InfoController {
 
     /**
-     * it's easy to understand what the mappings doing
+     * it's easy to understand what these mappings doing
      * maybe you should delete them
      * */
     @RequestMapping("/username")
     public String getName(){
-        return tokenApi.getCurrentUsername();
+        return TokenApi.getCurrentUsername();
     }
 
 
     @RequestMapping("/token")
     public String getToken(){
-        return tokenApi.getCurrentToken();
+        return TokenApi.getCurrentToken();
     }
 }

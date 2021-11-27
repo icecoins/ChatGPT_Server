@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class errorController implements ErrorController {
+public class ErrorPage implements org.springframework.boot.web.servlet.error.ErrorController {
     /**
      * redirect error pages
      * */

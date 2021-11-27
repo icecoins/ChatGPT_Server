@@ -1,6 +1,6 @@
 package com.interceptor;
 
-import com.api.tokenApi;
+import com.api.TokenApi;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -56,7 +56,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
                 //Validate token
                 try {
                     JWTVerifier verifier = JWT.require(
-                            Algorithm.HMAC256(tokenApi.getTokenSecret())
+                            Algorithm.HMAC256(TokenApi.getTokenSecret())
                     ).build();
                     verifier.verify(token);
                 } catch (JWTVerificationException e) {
