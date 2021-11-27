@@ -16,6 +16,18 @@
 
 附：项目文件中resources目录下包含了sql文件，可以少手动录入六七条数据
 
+# 如果想使用nginx反代（启用域名访问springboot）：
+
+修改nginx的配置文件，将所有流量指向springboot运行的端口，如：
+
+    location / {
+        proxy_pass http://127.0.0.1:12345/;
+        proxy_redirect off;
+        proxy_set_header        X-Real-IP           $remote_addr;
+        proxy_set_header        X-Forwarded-For     $proxy_add_x_forwarded_for;
+        proxy_set_header        Host                $http_host;
+        proxy_set_header        X-NginX-Proxy       true;
+    }
 
 # 注：all mappings information：
 # 位于UserApi下
