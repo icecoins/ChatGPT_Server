@@ -16,8 +16,8 @@
 
 附：项目文件中resources目录下包含了sql文件，可以少手动录入六七条数据
 
-# 如果想使用nginx反代（启用域名访问springboot）：
-
+# 注：如果想将其用于启用了域名的云服务器
+建议：使用nginx反代（通过域名访问springboot）：
 修改nginx的配置文件，将所有流量指向springboot运行的端口，如：
 
     location / {
