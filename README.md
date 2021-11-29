@@ -16,6 +16,19 @@
 
 附：项目文件中resources目录下包含了sql文件，可以少手动录入六七条数据
 
+# 注：如果想将其用于启用了域名的云服务器
+建议：使用nginx反代（通过域名访问springboot）：
+
+修改nginx的配置文件，将所有流量指向springboot运行的端口，如：
+
+    location / {
+        proxy_pass http://127.0.0.1:12345/;
+        proxy_redirect off;
+        proxy_set_header        X-Real-IP           $remote_addr;
+        proxy_set_header        X-Forwarded-For     $proxy_add_x_forwarded_for;
+        proxy_set_header        Host                $http_host;
+        proxy_set_header        X-NginX-Proxy       true;
+    }
 
 # 注：all mappings information：
 # 位于UserApi下
@@ -31,7 +44,7 @@ host/api/getInfo/{username} ：  验证token与username后，返回对应的一�
 
 host/api/checkToken ： 验证token是否可用
 
-host/api/checkIn/{username} ： 验证token与username后，在数据库中对该user增加一些property项，返回boolean
+host/api/checkIn/{username} ： 验证token与username后，在数据库中对该user增加一些property项，返回更新成功的boolean值
 
 # 位于ErrorPage下
 host/error  ： 错误页面
