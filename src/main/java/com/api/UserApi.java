@@ -43,18 +43,6 @@ public class UserApi {
         return jsonObject;
     }
 
-     /**
-      * decrypt the string, it's really sample,
-      * but it corresponds to the content in the app,
-      * so if you want to rebuild it, you should rebuild it also in the app.
-      * */
-    public String decrypt(String str) {
-        char[] a = str.toCharArray();
-        for (int i = 0; i < a.length; i++) {
-            a[i] = (char) (a[i] ^ 't');
-        }
-        return new String(a);
-    }
 
     /**
      * app or anyone else who has the token
@@ -87,14 +75,15 @@ public class UserApi {
      * if you want to get more user information,
      * you should use other mappings
      * */
-    @PostMapping("/getUser/{name}/{pwd}")
-    public JSONObject getUser(@PathVariable String name, @PathVariable String pwd) {
+    @RequestMapping(value = "/getUser",
+            method = { RequestMethod.POST, RequestMethod.GET },
+            produces = "application/json;charset=UTF-8")
+    public JSONObject getUser(@RequestBody JSONObject jsonObject) {
         User user = new User();
-        user.setUsername(decrypt(name));
-        user.setPassword(decrypt(pwd));
+        user.setUsername(jsonObject.get("username").toString());
+        user.setPassword(jsonObject.get("password").toString());
         return login(user);
     }
-
 
     /**
      * this mapping is used to debug,
@@ -111,16 +100,16 @@ public class UserApi {
      * */
     public JSONObject login(User user) {
         JSONObject jsonObject = new JSONObject();
-        User userForBase = userService.findByUser(user);
-        if (userForBase == null) {
-            jsonObject.put("message", "Login failed, user does not exist");
+        User foundUser = userService.findByUser(user);
+        if (foundUser == null) {
+            jsonObject.put("Error", "Login failed, user does not exist");
         } else {
-            if (!userForBase.getPassword().equals(user.getPassword())) {
-                jsonObject.put("message", "Login failed, password error");
+            if (!foundUser.getPassword().equals(user.getPassword())) {
+                jsonObject.put("Error", "Login failed, password error");
             } else {
-                String token = tokenService.getToken(userForBase);
+                String token = tokenService.getToken(foundUser);
                 jsonObject.put("token", token);
-                jsonObject.put("info", userForBase.getInfo());
+                jsonObject.put("info", foundUser.getInfo());
             }
         }
         return jsonObject;
@@ -186,14 +175,18 @@ public class UserApi {
 
     @UserLoginToken
     @RequestMapping("/checkIn/{username}")
-    public boolean DailyCheckIn(@PathVariable String username) {
+    public JSONObject DailyCheckIn(@PathVariable String username) {
         if(misMatchUsername(username)){
-            return false;
+            return null;
         }
+        JSONObject jsonObject = new JSONObject();
         Property property = userMapper.getPropertyByUsername(username);
-        int checked = userMapper.setPropertyByUsername(username, property.getCoin()+100,
-                                        property.getLevel()+1, property.getExp()+5);
-        return checked != 0;
+        int checked = userMapper.setPropertyByUsername(username,
+                property.getCoin()+100,
+                property.getLevel()+1,
+                property.getExp()+5);
+        jsonObject.put("checked", checked != 0);
+        return jsonObject;
     }
 
 

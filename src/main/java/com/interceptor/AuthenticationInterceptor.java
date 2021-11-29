@@ -50,7 +50,8 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             if (userLoginToken.required()) {
                 //execute certification
                 if (token == null) {
-                    throw new RuntimeException("Couldn't find token, please login again");
+                    throw new RuntimeException("The operation require token, " +
+                            "but couldn't find any token now, please login again");
                 }
 
                 //Validate token
