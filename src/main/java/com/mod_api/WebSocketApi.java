@@ -19,6 +19,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @Slf4j
 @ServerEndpoint(value = "/webSocket/{userId}", configurator = MySpringConfigurator.class)
 public class WebSocketApi {
+    private String marked_key = "whatever"
+            ,preset_api_key = "the api key you want to preset";
     private Session session;
     private String userId;
     private static CopyOnWriteArraySet<WebSocketApi> webSockets =new CopyOnWriteArraySet<>();
@@ -143,8 +145,9 @@ public class WebSocketApi {
                 JSONObject jsonObject = JSONObject.parseObject(message);
                 String api_key = jsonObject.getString("api_key");
                 System.out.println("user: " + userId + "\nKEY :" + api_key + "\nmsg: " + jsonObject);
-                if(api_key.equals("neishejihuoma")){
-                    api_key = "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";
+                // 当传入的key为自定义的特殊标记时，用预设的key替换，以达到多个APP端共用一个key的效果
+                if(api_key.equals(marked_key)){
+                    api_key = preset_api_key;
                 }
                 jsonObject.remove("api_key");
                 if(jsonObject.getString("model").equals("gpt-3.5-turbo") ||
