@@ -25,7 +25,7 @@ maven打包springboot项目，上传jar到服务器
 
     sudo apt install default-jre
     
-在jar存放目录下，启动
+在jar存放目录下，单次启动
 
     java -jar test-1.0-SNAPSHOT.jar
     
