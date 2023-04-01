@@ -48,8 +48,7 @@ public class WebSocket {
             this.session = session;
             this.userId = userId;
             messengers.put(userId, new Messenger(session));
-            System.out.println(getDate().getString("time") + "  New: "+
-                    userId + "\n");
+            System.out.println(getDate().getString("time") + "  New: "+ userId + "\n");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,8 +58,7 @@ public class WebSocket {
     public void onClose() {
         try {
             messengers.remove(userId);
-            System.out.println(getDate().getString("time") + "  Close: " +
-                    userId);
+            System.out.println(getDate().getString("time") + "  Close: " + userId);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -74,7 +72,6 @@ public class WebSocket {
             Messenger messenger = messengers.get(uuid);
             if (!(null == jsonObject.getString("type")) &&
                     jsonObject.getString("type").equals("sound")) {
-                //callTtsApi(jsonObject, sessionPool.get(userId));
                 messenger.sendMsg(uuid, jsonObject, "", CALL_TYPE_SOUND);
                 return;
             }
@@ -100,10 +97,8 @@ public class WebSocket {
                 jsonObject.remove("prompt");
                 jsonObject.put("messages", list);
                 messenger.sendMsg(uuid, jsonObject, api_key, CALL_TYPE_NEW);
-                //callApiNew(jsonObject, api_key, sessionPool.get(userId));
             }else {
                 messenger.sendMsg(uuid, jsonObject, api_key, CALL_TYPE_OLD);
-                //callApiOld(jsonObject, api_key, sessionPool.get(userId));
             }
         }).start();
     }
