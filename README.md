@@ -31,7 +31,7 @@ maven打包springboot项目，上传jar到服务器
     
 编写脚本spring.sh后台启动，内填
 
-    nohup java -jar test-1.0-SNAPSHOT.jar &
+    nohup java -jar test-1.0-SNAPSHOT.jar >> log/spring.out  &
     
 在jar存放目录下，运行脚本
 
