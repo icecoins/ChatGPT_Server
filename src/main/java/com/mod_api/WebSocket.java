@@ -23,29 +23,32 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @ServerEndpoint(value = "/webSocket/{userId}", configurator = MySpringConfigurator.class)
 public class WebSocket {
-    private final String MARKED_KEY = "MARKED_KEY";
-    private final String PRESET_KEY = "sk-Jc***7QyVN***GK3ZZL5***lbkFJn***1LDGU***G0Of***U";
+    private final String MARKED_KEY = "MARK_KEY";
+    private final String PRESET_KEY = "PRESET_KEY";
 
     // 分别为 对话发送结束标记、文件发送结束标记、文件错误标记，可自行设置，与APP代码中的标记一致即可
     private final String SEND_END = "///**END_OF_SEND**///";
     private final String FILE_END = "///**END_OF_FILE**///";
     private final String FILE_ERROR = "///**FILE_ERROR**///";
+    private final String FULL_TEXT = "///**FULL_TEXT**///";
     private final String GPT_3_5_URL = "https://api.openai.com/v1/chat/completions";
     private final String GPT_3_URL = "https://api.openai.com/v1/completions";
 
     // 调用vits模型进行语音合成的接口地址，根据你的python代码自行设置
     // 本人调用的vits接口返回值为 .mp3文件绝对路径 ，其他返回形式请自行修改代码
     private final String LOCAL_AUDIO_API_URL = "http://127.0.0.1:65432/getAudio";
-    private Session session;
     private String userId;
     private static final int CALL_TYPE_NEW = 1;
     private static final int CALL_TYPE_OLD = 2;
     private static final int CALL_TYPE_SOUND = 3;
+    private final List<String> models_3 = new ArrayList<>(Arrays.asList(
+            "text-davinci-003", "text-davinci-002"));
+    private final List<String> models_3_5 = new ArrayList<>(Arrays.asList("gpt-3.5-turbo", "gpt-3.5-turbo-16k",
+            "gpt-3.5-turbo-0613","gpt-3.5-turbo-16k-0613","gpt-3.5-turbo-0301"));
     private static final ConcurrentHashMap<String, Messenger> messengers = new ConcurrentHashMap<>();
     @OnOpen
     public void onOpen(Session session, @PathParam(value="userId")String userId) {
         try {
-            this.session = session;
             this.userId = userId;
             messengers.put(userId, new Messenger(session));
             System.out.println(getDate().getString("time") + "  New: "+ userId + "\n");
@@ -75,20 +78,28 @@ public class WebSocket {
                 messenger.sendMsg(uuid, jsonObject, "", CALL_TYPE_SOUND);
                 return;
             }
+            if (!(null == jsonObject.getString("type")) &&
+                    jsonObject.getString("type").equals("stop")) {
+                messenger.stop();
+                return;
+            }
             String api_key = jsonObject.getString("api_key");
             // 当传入的key为自定义的特殊标记时，用预设的key替换，以达到多个APP端共用一个key的效果
             // 我的openai账号的额度已经耗尽了，请使用自己的key
             if(api_key.equals("PicACG.2.2.3.3.4")){
-                messenger.sendOneMsg("这个API KEY的可用额度已经耗尽，请使用其他KEY\n\nThe available quota for this API KEY has been exhausted. Please use another KEY.");
+                messenger.sendOneMsgAndEnd("这个API KEY的可用额度已经耗尽，请使用其他KEY\n\nThe available quota for this API KEY has been exhausted. Please use another KEY.");
                 return;
             }
             if(api_key.equals(MARKED_KEY)){
+                if(jsonObject.getString("prompt").length() > 800){
+                    messenger.promptTooLongExp();
+                    return;
+                }
                 api_key = PRESET_KEY;
             }
             jsonObject.remove("api_key");
             jsonObject.remove("uuid");
-            if(jsonObject.getString("model").equals("gpt-3.5-turbo") ||
-                    jsonObject.getString("model").equals("gpt-3.5-turbo-0301") ){
+            if(models_3_5.contains(jsonObject.getString("model"))){
                 JSONObject msg = new JSONObject();
                 List<JSONObject> list = new ArrayList<>();
                 msg.put("role", "user");
@@ -97,14 +108,16 @@ public class WebSocket {
                 jsonObject.remove("prompt");
                 jsonObject.put("messages", list);
                 messenger.sendMsg(uuid, jsonObject, api_key, CALL_TYPE_NEW);
-            }else {
+            }else if(models_3.contains(jsonObject.getString("model"))){
                 messenger.sendMsg(uuid, jsonObject, api_key, CALL_TYPE_OLD);
+            }else {
+                messenger.sendOneMsgAndEnd("错误：未知模型。\n若APP经过自定义，请确保修改后的代码运行无误。");
             }
         }).start();
     }
 
     @OnError
-    public void onError(Session session, Throwable error) {
+    public void onError(Throwable error) {
         System.out.println("Error " + userId + " :\n"+error.toString());
         error.printStackTrace();
     }
@@ -124,6 +137,8 @@ public class WebSocket {
     
     class Messenger {
         Session session;
+        boolean isSending = false,
+                forceStop = false;
         int type;
         JSONObject jsonObject;
         String key;
@@ -138,9 +153,11 @@ public class WebSocket {
                 this.type = type;
                 switch (type){
                     case CALL_TYPE_NEW:
+                        isSending = true;
                         callApiNew(jsonObject, key);
                         break;
                     case CALL_TYPE_OLD:
+                        isSending = true;
                         callApiOld(jsonObject, key);
                         break;
                     case CALL_TYPE_SOUND:
@@ -164,13 +181,29 @@ public class WebSocket {
                     .build();
             return client.newCall(request);
         }
+        public void stop(){
+            if(isSending){
+                forceStop = true;
+            }
+        }
+        public void promptTooLongExp(){
+            sendOneMsgAndEnd("" +
+                    "当前 prompt 文本长度已超过 800 字，免费 KEY 额度有限，请删除对话记录后重新开始对话。" +
+                    "此外，使用个人的 KEY 可以避免这个限制，但是过长的记录仍会对该 KEY 的额度造成较大消耗，请理性使用。\n\n" +
+                    "The current prompt text length has exceeded 800 words, " +
+                    "and the free KEY is limited. Please delete the chat" +
+                    " records and restart the chat." +
+                    "In addition, using a personal KEY can avoid this restriction, " +
+                    "but excessively long records can still cause significant consumption " +
+                    "of the KEY limit. Please use it rationally.");
+        }
         void callApiOld(JSONObject jsonObject, String key){
             Call call = getOkhttpCall(GPT_3_URL,
                     jsonObject, key);
             call.enqueue(new Callback() {
                 @SneakyThrows
                 @Override
-                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                public void onResponse(@NonNull Call call, @NonNull Response response) {
                     if (response.isSuccessful()) {
                         InputStream inputStream = response.body().byteStream();
                         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -178,6 +211,10 @@ public class WebSocket {
                         StringBuilder res = new StringBuilder();
                         try {
                             while ((line = reader.readLine())!=null){
+                                if(forceStop){
+                                    forceStop = false;
+                                    break;
+                                }
                                 if(line.length()<50){
                                     continue;
                                 }
@@ -189,25 +226,28 @@ public class WebSocket {
                                 sendOneMessage(s);
                                 res.append(s);
                             }
+                            sendOneMessage(FULL_TEXT + res);
                             reader.close();
+                            call.cancel();
                             // End Message
-                            System.out.println(getDate().getString("time") + "\nTo" + userId + " :\n" + res + "\n");
+                            System.out.println(getDate().getString("time") + "\nTo  " + userId + " :\n" + res + "\n");
                         }catch (IOException e) {
                             sendOneMessage(e.getMessage());
                             e.printStackTrace();
                         }
-                        sendOneMessage(SEND_END);
                     } else {
                         sendOneMessage("Error while calling OpenAI's API.\n");
                         sendOneMessage("Code: " + response.code() + "\n" + response.body().string());
-                        sendOneMessage(SEND_END);
                     }
+                    sendOneMessage(SEND_END);
+                    isSending = false;
                 }
                 @SneakyThrows
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     sendOneMessage("Failed to call OpenAI's API. Plz try again later:\n");
                     sendOneMessage(SEND_END);
+                    isSending = false;
                 }
             });
 
@@ -226,6 +266,11 @@ public class WebSocket {
                         StringBuilder res = new StringBuilder();
                         try {
                             while ((line = reader.readLine())!=null){
+                                if(forceStop){
+                                    forceStop = false;
+                                    call.cancel();
+                                    break;
+                                }
                                 if(line.length()<40){
                                     continue;
                                 }
@@ -242,31 +287,34 @@ public class WebSocket {
                                 if(!(null == content)){
                                     String s = content.getString("content");
                                     if(!(null == s)){
-                                        sendOneMessage(s);
                                         res.append(s);
+                                        sendOneMessage(s);
                                     }
                                 }
                             }
+                            sendOneMessage(FULL_TEXT + res);
                             reader.close();
                             inputStream.close();
                             // End Message
-                            System.out.println(getDate().getString("time") + "\nTo" + userId + " :\n" + res + "\n");
+                            System.out.println(getDate().getString("time") + "\nTo  " + userId + " :\n" + res + "\n");
                         }catch (IOException e) {
                             sendOneMessage(e.getMessage());
                             e.printStackTrace();
                         }
-                        sendOneMessage(SEND_END);
+                        sendOneMessage(FULL_TEXT + res);
                     } else {
                         sendOneMessage("Error while calling OpenAI's API.\n");
                         sendOneMessage("Code: " + response.code() + "\n" + response.body().string());
-                        sendOneMessage(SEND_END);
                     }
+                    sendOneMessage(SEND_END);
+                    isSending = false;
                 }
                 @SneakyThrows
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
                     sendOneMessage("Failed to call OpenAI's API. Plz try again later:\n");
                     sendOneMessage(SEND_END);
+                    isSending = false;
                 }
             });
 
@@ -335,7 +383,7 @@ public class WebSocket {
                 }
             }
         }
-        public void sendOneMsg(String msg){
+        public void sendOneMsgAndEnd(String msg){
             sendOneMessage(msg);
             sendOneMessage(SEND_END);
         }
