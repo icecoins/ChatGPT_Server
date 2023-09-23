@@ -37,3 +37,6 @@ maven打包springboot项目，上传jar到服务器
 
     sudo bash spring.sh
    
+
+# 关于语音转换：
+引用自 https://github.com/SayaSS/vits-finetuning
