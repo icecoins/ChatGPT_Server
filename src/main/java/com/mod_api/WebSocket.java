@@ -27,7 +27,7 @@ public class WebSocket {
     private final String PRESET_KEY = "PRESET_KEY";
 
     // 分别为 对话发送结束标记、文件发送结束标记、文件错误标记，可自行设置，与APP代码中的标记一致即可
-    private final String SEND_END = "///**END_OF_SEND**///";
+    //private final String SEND_END = "///**END_OF_SEND**///";
     private final String FILE_END = "///**END_OF_FILE**///";
     private final String FILE_ERROR = "///**FILE_ERROR**///";
     private final String FULL_TEXT = "///**FULL_TEXT**///";
@@ -213,6 +213,7 @@ public class WebSocket {
                             while ((line = reader.readLine())!=null){
                                 if(forceStop){
                                     forceStop = false;
+                                    res.append("\n\n对话已终止");
                                     break;
                                 }
                                 if(line.length()<50){
@@ -226,27 +227,31 @@ public class WebSocket {
                                 sendOneMessage(s);
                                 res.append(s);
                             }
-                            sendOneMessage(FULL_TEXT + res);
                             reader.close();
+                            inputStream.close();
                             call.cancel();
+                            new Timer().schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    sendOneMessage(FULL_TEXT + res);
+                                }
+                            }, 100);
                             // End Message
                             System.out.println(getDate().getString("time") + "\nTo  " + userId + " :\n" + res + "\n");
                         }catch (IOException e) {
-                            sendOneMessage(e.getMessage());
+                            sendOneMessage(FULL_TEXT + e.getMessage());
                             e.printStackTrace();
                         }
                     } else {
                         sendOneMessage("Error while calling OpenAI's API.\n");
-                        sendOneMessage("Code: " + response.code() + "\n" + response.body().string());
+                        sendOneMessage(FULL_TEXT + "Code: " + response.code() + "\n" + response.body().string());
                     }
-                    sendOneMessage(SEND_END);
                     isSending = false;
                 }
                 @SneakyThrows
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    sendOneMessage("Failed to call OpenAI's API. Plz try again later:\n");
-                    sendOneMessage(SEND_END);
+                    sendOneMessage(FULL_TEXT + "Failed to call OpenAI's API. Plz try again later:\n");
                     isSending = false;
                 }
             });
@@ -268,7 +273,7 @@ public class WebSocket {
                             while ((line = reader.readLine())!=null){
                                 if(forceStop){
                                     forceStop = false;
-                                    call.cancel();
+                                    res.append("\n\n对话已终止");
                                     break;
                                 }
                                 if(line.length()<40){
@@ -292,28 +297,31 @@ public class WebSocket {
                                     }
                                 }
                             }
-                            sendOneMessage(FULL_TEXT + res);
+                            new Timer().schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    sendOneMessage(FULL_TEXT + res);
+                                }
+                            }, 100);
                             reader.close();
                             inputStream.close();
+                            call.cancel();
                             // End Message
                             System.out.println(getDate().getString("time") + "\nTo  " + userId + " :\n" + res + "\n");
                         }catch (IOException e) {
-                            sendOneMessage(e.getMessage());
+                            sendOneMessage(FULL_TEXT + e.getMessage());
                             e.printStackTrace();
                         }
-                        sendOneMessage(FULL_TEXT + res);
                     } else {
                         sendOneMessage("Error while calling OpenAI's API.\n");
-                        sendOneMessage("Code: " + response.code() + "\n" + response.body().string());
+                        sendOneMessage(FULL_TEXT + "Code: " + response.code() + "\n" + response.body().string());
                     }
-                    sendOneMessage(SEND_END);
                     isSending = false;
                 }
                 @SneakyThrows
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    sendOneMessage("Failed to call OpenAI's API. Plz try again later:\n");
-                    sendOneMessage(SEND_END);
+                    sendOneMessage(FULL_TEXT + "Failed to call OpenAI's API. Plz try again later:\n");
                     isSending = false;
                 }
             });
@@ -384,8 +392,7 @@ public class WebSocket {
             }
         }
         public void sendOneMsgAndEnd(String msg){
-            sendOneMessage(msg);
-            sendOneMessage(SEND_END);
+            sendOneMessage(FULL_TEXT + msg);
         }
     }
 }
