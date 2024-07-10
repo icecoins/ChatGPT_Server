@@ -1,7 +1,6 @@
 package com.mod_api;
 
 import com.alibaba.fastjson.JSONObject;
-import com.config.MySpringConfigurator;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Slf4j
-@ServerEndpoint(value = "/webSocket/{userId}", configurator = MySpringConfigurator.class)
+@ServerEndpoint(value = "/webSocket/{userId}")
 public class WebSocket {
     private final String MARKED_KEY = "MARK_KEY";
     private final String PRESET_KEY = "PRESET_KEY";
