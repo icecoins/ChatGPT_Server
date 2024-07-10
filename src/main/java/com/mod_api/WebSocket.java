@@ -3,7 +3,6 @@ package com.mod_api;
 import com.alibaba.fastjson.JSONObject;
 import lombok.NonNull;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -17,13 +16,21 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.logging.Handler;
+
+import static java.lang.Thread.sleep;
 
 @Component
-@Slf4j
-@ServerEndpoint(value = "/webSocket/{userId}")
+@ServerEndpoint(value = "/wss/{userId}")
 public class WebSocket {
-    private final String MARKED_KEY = "MARK_KEY";
-    private final String PRESET_KEY = "PRESET_KEY";
+    //private final String MARKED_KEY = "MARK_KEY";
+    //private final String PRESET_KEY = "PRESET_KEY";
+    private final String MARKED_KEY = "key0617";
+    private final String PRESET_KEY = "sk-proj-G0kECEx****xEgtA4QYbT3*****JKmXRGFIRZN6P8CzEMZVh";
+
 
     // 分别为 对话发送结束标记、文件发送结束标记、文件错误标记，可自行设置，与APP代码中的标记一致即可
     //private final String SEND_END = "///**END_OF_SEND**///";
@@ -33,6 +40,7 @@ public class WebSocket {
     private final String GPT_3_5_URL = "https://api.openai.com/v1/chat/completions";
     private final String GPT_3_URL = "https://api.openai.com/v1/completions";
 
+
     // 调用vits模型进行语音合成的接口地址，根据你的python代码自行设置
     // 本人调用的vits接口返回值为 .mp3文件绝对路径 ，其他返回形式请自行修改代码
     private final String LOCAL_AUDIO_API_URL = "http://127.0.0.1:65432/getAudio";
@@ -40,11 +48,15 @@ public class WebSocket {
     private static final int CALL_TYPE_NEW = 1;
     private static final int CALL_TYPE_OLD = 2;
     private static final int CALL_TYPE_SOUND = 3;
+    private static final int CALL_TYPE_PING = 4;
     private final List<String> models_3 = new ArrayList<>(Arrays.asList(
             "text-davinci-003", "text-davinci-002"));
-    private final List<String> models_3_5 = new ArrayList<>(Arrays.asList("gpt-3.5-turbo", "gpt-3.5-turbo-16k",
+    private final List<String> models_3_5 = new ArrayList<>(Arrays.asList(
+            "gpt-4o", "gpt-4-turbo", "gpt-4",
+            "gpt-3.5-turbo", "gpt-3.5-turbo-16k",
             "gpt-3.5-turbo-0613","gpt-3.5-turbo-16k-0613","gpt-3.5-turbo-0301"));
     private static final ConcurrentHashMap<String, Messenger> messengers = new ConcurrentHashMap<>();
+
     @OnOpen
     public void onOpen(Session session, @PathParam(value="userId")String userId) {
         try {
@@ -72,6 +84,11 @@ public class WebSocket {
             JSONObject jsonObject = JSONObject.parseObject(message);
             String uuid = jsonObject.getString("uuid");
             Messenger messenger = messengers.get(uuid);
+            if (!(null == jsonObject.getString("type")) &&
+                    jsonObject.getString("type").equals("ping")) {
+                messenger.sendMsg(uuid, jsonObject, "", CALL_TYPE_PING);
+                return;
+            }
             if (!(null == jsonObject.getString("type")) &&
                     jsonObject.getString("type").equals("sound")) {
                 messenger.sendMsg(uuid, jsonObject, "", CALL_TYPE_SOUND);
@@ -133,8 +150,8 @@ public class WebSocket {
         jsonObject.put("time", sdf.format(d));
         return jsonObject;
     }
-    
-    class Messenger {
+
+    class Messenger{
         Session session;
         boolean isSending = false,
                 forceStop = false;
@@ -143,6 +160,7 @@ public class WebSocket {
         String key;
         Messenger(Session session){
             this.session = session;
+            sendOneMessage("pong");
         }
         public void sendMsg(String id, JSONObject jsonObject, String key, int type){
             new Thread(()->{
@@ -151,6 +169,16 @@ public class WebSocket {
                 this.key = key;
                 this.type = type;
                 switch (type){
+                    case CALL_TYPE_PING:
+                        new Thread(()->{
+                            try {
+                                sleep(500);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                            sendOneMessage("pong");
+                        }).start();
+                        break;
                     case CALL_TYPE_NEW:
                         isSending = true;
                         callApiNew(jsonObject, key);
@@ -186,15 +214,15 @@ public class WebSocket {
             }
         }
         public void promptTooLongExp(){
-            sendOneMsgAndEnd("" +
+            sendOneMsgAndEnd(
                     "当前 prompt 文本长度已超过 800 字，免费 KEY 额度有限，请删除对话记录后重新开始对话。" +
-                    "此外，使用个人的 KEY 可以避免这个限制，但是过长的记录仍会对该 KEY 的额度造成较大消耗，请理性使用。\n\n" +
-                    "The current prompt text length has exceeded 800 words, " +
-                    "and the free KEY is limited. Please delete the chat" +
-                    " records and restart the chat." +
-                    "In addition, using a personal KEY can avoid this restriction, " +
-                    "but excessively long records can still cause significant consumption " +
-                    "of the KEY limit. Please use it rationally.");
+                            "此外，使用个人的 KEY 可以避免这个限制，但是过长的记录仍会对该 KEY 的额度造成较大消耗，请理性使用。\n\n" +
+                            "The current prompt text length has exceeded 800 words, " +
+                            "and the free KEY is limited. Please delete the chat" +
+                            " records and restart the chat." +
+                            "In addition, using a personal KEY can avoid this restriction, " +
+                            "but excessively long records can still cause significant consumption " +
+                            "of the KEY limit. Please use it rationally.");
         }
         void callApiOld(JSONObject jsonObject, String key){
             Call call = getOkhttpCall(GPT_3_URL,
