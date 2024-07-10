@@ -6,7 +6,7 @@
 自定义运行端口、运行路径，建议自行修改代码，或自行搜索方法
 
 ## 更新：
-支持新模型的调用："gpt-3.5-turbo", "gpt-3.5-turbo-16k","gpt-3.5-turbo-instruct", "gpt-3.5-turbo-0613","gpt-3.5-turbo-16k-0613"
+支持新模型的调用："gpt-4", "gpt4o", "gpt-4-turbo", "gpt-3.5-turbo", "gpt-3.5-turbo-16k","gpt-3.5-turbo-instruct", "gpt-3.5-turbo-0613","gpt-3.5-turbo-16k-0613"
 
 ## 修复：
 1.为解决对话少量乱序的问题，服务器将在每次对话发送完毕后进行完整重传，覆盖可能乱序的回复。
