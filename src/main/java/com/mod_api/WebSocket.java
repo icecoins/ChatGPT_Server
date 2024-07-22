@@ -16,10 +16,6 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.logging.Handler;
 
 import static java.lang.Thread.sleep;
 
@@ -50,11 +46,14 @@ public class WebSocket {
     private static final int CALL_TYPE_SOUND = 3;
     private static final int CALL_TYPE_PING = 4;
     private final List<String> models_3 = new ArrayList<>(Arrays.asList(
-            "text-davinci-003", "text-davinci-002"));
-    private final List<String> models_3_5 = new ArrayList<>(Arrays.asList(
+            "text-davinci-003", "text-davinci-002"
+    ));
+    private final List<String> models_4 = new ArrayList<>(Arrays.asList(
+            "gpt-4o-mini", "gpt-4o-mini-2024-07-18",
             "gpt-4o", "gpt-4-turbo", "gpt-4",
             "gpt-3.5-turbo", "gpt-3.5-turbo-16k",
-            "gpt-3.5-turbo-0613","gpt-3.5-turbo-16k-0613","gpt-3.5-turbo-0301"));
+            "gpt-3.5-turbo-0613","gpt-3.5-turbo-16k-0613","gpt-3.5-turbo-0301"
+    ));
     private static final ConcurrentHashMap<String, Messenger> messengers = new ConcurrentHashMap<>();
 
     @OnOpen
@@ -115,7 +114,7 @@ public class WebSocket {
             }
             jsonObject.remove("api_key");
             jsonObject.remove("uuid");
-            if(models_3_5.contains(jsonObject.getString("model"))){
+            if(models_4.contains(jsonObject.getString("model"))){
                 JSONObject msg = new JSONObject();
                 List<JSONObject> list = new ArrayList<>();
                 msg.put("role", "user");
@@ -124,11 +123,15 @@ public class WebSocket {
                 jsonObject.remove("prompt");
                 jsonObject.put("messages", list);
                 messenger.sendMsg(uuid, jsonObject, api_key, CALL_TYPE_NEW);
-            }else if(models_3.contains(jsonObject.getString("model"))){
-                messenger.sendMsg(uuid, jsonObject, api_key, CALL_TYPE_OLD);
-            }else {
-                messenger.sendOneMsgAndEnd("错误：未知模型。\n若APP经过自定义，请确保修改后的代码运行无误。");
             }
+            else{
+                messenger.sendMsg(uuid, jsonObject, api_key, CALL_TYPE_OLD);
+            }
+//            else if(models_3.contains(jsonObject.getString("model"))){
+//                messenger.sendMsg(uuid, jsonObject, api_key, CALL_TYPE_OLD);
+//            }else {
+//                messenger.sendOneMsgAndEnd("错误：未知模型。\n若APP经过自定义，请确保修改后的代码运行无误。");
+//            }
         }).start();
     }
 
